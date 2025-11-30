@@ -1,0 +1,10 @@
+Changelog
+#########
+Unreleased
+==========
+
+[1.0.0] - 2025-11-04
+====================
+Added
+-----
+* First public release.
