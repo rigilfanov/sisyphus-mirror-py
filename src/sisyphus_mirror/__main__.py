@@ -8,7 +8,7 @@ from sisyphus_mirror.mirror import repo_mirroring
 from sisyphus_mirror.typedefs import CLIArgsT, ConfigKW
 
 
-def main(logger: Logger = get_logger(__name__)) -> None:  # noqa: B008
+def main(logger: Logger = get_logger(__name__)) -> None:
     cli_options = handle_cli_options()
 
     config_path = cli_options.pop("config", DEFAULT_CONF_PATH)

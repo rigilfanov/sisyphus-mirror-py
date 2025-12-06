@@ -1,7 +1,7 @@
 ##################
 Sisyphus Mirror Py
 ##################
-`English <README.rst>`_ | Русский
+`English <https://github.com/rigilfanov/sisyphus-mirror-py/blob/master/README.rst>`_ | Русский
 
 Современная Python-реализация инструмента для зеркалирования репозитория `Сизиф <https://packages.altlinux.org>`_.
 
@@ -27,6 +27,9 @@ Sisyphus Mirror Py
   # Виртуальное окружение Python и установка пакета:
   sudo -u sisyphus-mirror python3 -m venv /opt/sisyphus-mirror/venv
   sudo -u sisyphus-mirror /opt/sisyphus-mirror/venv/bin/pip install sisyphus-mirror
+
+  # Добавление команды
+  ln -s /opt/sisyphus-mirror/venv/bin/sisyphus-mirror /usr/local/sbin/sisyphus-mirror
 
   # Создание конфигурационного файла TOML:
   echo '[sisyphus-mirror]
@@ -62,13 +65,13 @@ Sisyphus Mirror Py
   conn_timeout = 60
 
   # Таймаут операций ввода-вывода (в секундах).
-  io_timeout = 600' > /etc/sisyphus-mirror/sisyphus-mirror.toml
+  io_timeout = 600' > /etc/sisyphus-mirror/default.toml
 
 Редактирование конфигурации:
 
 .. code-block:: bash
 
-  nano /etc/sisyphus-mirror/sisyphus-mirror.toml
+  nano /etc/sisyphus-mirror/default.toml
 
 Тестовый запуск
 ===============
@@ -76,11 +79,7 @@ Sisyphus Mirror Py
 
 .. code-block:: bash
 
-  sudo -u sisyphus-mirror \
-    /opt/sisyphus-mirror/venv/bin/sisyphus-mirror \
-    --dry-run \
-    --verbose \
-    --config /etc/sisyphus-mirror/sisyphus-mirror.toml
+  sudo -u sisyphus-mirror sisyphus-mirror --dry-run --verbose
 
 Итоговое значение `total size` должно быть меньше доступного дискового пространства.
 
@@ -90,9 +89,7 @@ Sisyphus Mirror Py
 
 .. code-block:: bash
 
-  sudo -u sisyphus-mirror \
-    /opt/sisyphus-mirror/venv/bin/sisyphus-mirror \
-    --config /etc/sisyphus-mirror/sisyphus-mirror.toml
+  sudo -u sisyphus-mirror sisyphus-mirror
 
 Интеграция с systemd
 ====================
@@ -108,7 +105,7 @@ Sisyphus Mirror Py
   User=sisyphus-mirror
   Group=sisyphus-mirror
   WorkingDirectory=/opt/sisyphus-mirror
-  ExecStart=/opt/sisyphus-mirror/venv/bin/sisyphus-mirror -c /etc/sisyphus-mirror/sisyphus-mirror.toml
+  ExecStart=sisyphus-mirror
   ProtectHome=true
   ProtectSystem=true
   SyslogIdentifier=sisyphus-mirror
@@ -136,6 +133,8 @@ Sisyphus Mirror Py
 
 Раздача через rsyncd
 ====================
+Пример для ранее несконфигурированной установки rsync:
+
 .. code-block:: bash
 
   echo 'port = 873
@@ -149,4 +148,31 @@ Sisyphus Mirror Py
   read only = yes
   list = yes' > /etc/rsyncd.conf
 
-  systemctl enable --now rsync.service
+  systemctl enable rsync
+  systemctl restart rsync
+
+Раздача через Nginx
+===================
+Пример для ранее несконфигурированной установки Nginx:
+
+.. code-block:: bash
+
+  echo 'server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name _;
+    location /altlinux/ {
+        alias /srv/mirrors/altlinux/;
+        index off;
+        autoindex on;
+        autoindex_exact_size off;
+        autoindex_localtime on;
+        try_files $uri $uri/ =404;
+    }
+  }' > /etc/nginx/sites-available/altlinux
+
+  rm /etc/nginx/sites-enabled/default
+  ln -s /etc/nginx/sites-available/altlinux /etc/nginx/sites-enabled/altlinux
+
+  systemctl enable nginx
+  systemctl restart nginx

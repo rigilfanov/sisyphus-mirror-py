@@ -1,7 +1,7 @@
 ##################
 Sisyphus Mirror Py
 ##################
-English | `Русский <README_RU.rst>`_
+English | `Русский <https://github.com/rigilfanov/sisyphus-mirror-py/blob/master/README_RU.rst>`_
 
 A modern Python implementation of the tool for mirroring the `Sisyphus <https://packages.altlinux.org>`_ repository.
 
@@ -27,6 +27,9 @@ Installation
   # Create Python virtual environment and install the package:
   sudo -u sisyphus-mirror python3 -m venv /opt/sisyphus-mirror/venv
   sudo -u sisyphus-mirror /opt/sisyphus-mirror/venv/bin/pip install sisyphus-mirror
+
+  # Add command
+  ln -s /opt/sisyphus-mirror/venv/bin/sisyphus-mirror /usr/local/sbin/sisyphus-mirror
 
   # Create TOML configuration file:
   echo '[sisyphus-mirror]
@@ -62,13 +65,13 @@ Installation
   conn_timeout = 60
 
   # I/O timeout (seconds).
-  io_timeout = 600' > /etc/sisyphus-mirror/sisyphus-mirror.toml
+  io_timeout = 600' > /etc/sisyphus-mirror/default.toml
 
 Modify configuration if needed:
 
 .. code-block:: bash
 
-  nano /etc/sisyphus-mirror/sisyphus-mirror.toml
+  nano /etc/sisyphus-mirror/default.toml
 
 Test Run
 ========
@@ -76,11 +79,7 @@ Dry-run synchronization with detailed output:
 
 .. code-block:: bash
 
-  sudo -u sisyphus-mirror \
-    /opt/sisyphus-mirror/venv/bin/sisyphus-mirror \
-    --dry-run \
-    --verbose \
-    --config /etc/sisyphus-mirror/sisyphus-mirror.toml
+  sudo -u sisyphus-mirror sisyphus-mirror --dry-run --verbose
 
 Ensure that the reported `total size` fits the available disk space.
 
@@ -90,9 +89,7 @@ Actual synchronization:
 
 .. code-block:: bash
 
-  sudo -u sisyphus-mirror \
-    /opt/sisyphus-mirror/venv/bin/sisyphus-mirror \
-    --config /etc/sisyphus-mirror/sisyphus-mirror.toml
+  sudo -u sisyphus-mirror sisyphus-mirror
 
 Systemd Integration
 ===================
@@ -108,7 +105,7 @@ Systemd Integration
   User=sisyphus-mirror
   Group=sisyphus-mirror
   WorkingDirectory=/opt/sisyphus-mirror
-  ExecStart=/opt/sisyphus-mirror/venv/bin/sisyphus-mirror -c /etc/sisyphus-mirror/sisyphus-mirror.toml
+  ExecStart=sisyphus-mirror
   ProtectHome=true
   ProtectSystem=true
   SyslogIdentifier=sisyphus-mirror
@@ -136,6 +133,8 @@ Systemd Integration
 
 Serving via rsyncd
 ==================
+Example for a previously unconfigured rsync installation:
+
 .. code-block:: bash
 
   echo 'port = 873
@@ -149,4 +148,31 @@ Serving via rsyncd
   read only = yes
   list = yes' > /etc/rsyncd.conf
 
-  systemctl enable --now rsync.service
+  systemctl enable rsync
+  systemctl restart rsync
+
+Serving via Nginx
+=================
+Example for a previously unconfigured Nginx installation:
+
+.. code-block:: bash
+
+  echo 'server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name _;
+    location /altlinux/ {
+        alias /srv/mirrors/altlinux/;
+        index off;
+        autoindex on;
+        autoindex_exact_size off;
+        autoindex_localtime on;
+        try_files $uri $uri/ =404;
+    }
+  }' > /etc/nginx/sites-available/altlinux
+
+  rm /etc/nginx/sites-enabled/default
+  ln -s /etc/nginx/sites-available/altlinux /etc/nginx/sites-enabled/altlinux
+
+  systemctl enable nginx
+  systemctl restart nginx

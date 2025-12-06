@@ -6,7 +6,7 @@ from sisyphus_mirror.typedefs import ArchT, BranchT
 APP_NAME = "Sysiphus Mirror"
 ARCH_LIST = get_args(ArchT)
 BRANCH_LIST = get_args(BranchT)
-DEFAULT_CONF_PATH = Path("/etc/sisyphus-mirror/sisyphus-mirror.toml")
+DEFAULT_CONF_PATH = Path("/etc/sisyphus-mirror/default.toml")
 DEFAULT_SOURCE = "rsync://ftp.altlinux.org/ALTLinux"
 DEFAULT_HOME_PATH = Path("/srv/mirrors/altlinux")
 DEFAULT_ARCH: list[ArchT] = ["noarch", "x86_64", "x86_64-i586"]

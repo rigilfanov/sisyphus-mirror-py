@@ -1,5 +1,6 @@
 from argparse import SUPPRESS, ArgumentParser
 from collections.abc import Sequence
+from functools import partial
 from pathlib import Path
 
 from sisyphus_mirror.checks import is_rsync_rate_limit
@@ -25,81 +26,53 @@ def handle_cli_options(
     args: Sequence[str] | None = None,  # for pytest
 ) -> CLIArgsT:
     parser = ArgumentParser()
-    parser.add_argument(
-        "-c", "--config", type=Path, default=SUPPRESS,
-        help=f"Path to TOML configuration file. Defaults: {DEFAULT_CONF_PATH}.",
-    )
-    parser.add_argument(
-        "-n", "--dry-run", action="store_true", default=SUPPRESS,
-        help="Perform a trial run without making changes.",
-    )
-    parser.add_argument(
-        "-v", "--verbose", action="store_true", default=SUPPRESS,
-        help="Enable verbose mode with detailed output.",
-    )
-    parser.add_argument(
-        "-d", "--debug", action="store_true", default=SUPPRESS,
-        help=("Enable debug mode."),
-    )
-    parser.add_argument(
-        "-b", "--branch-list", choices=BRANCH_LIST, nargs="*", default=SUPPRESS,
-        help="Explicitly defined repository branches.",
-    )
-    parser.add_argument(
-        "-s", "--source-url", default=SUPPRESS,
-        help=f"Repository source URL. Defaults: {DEFAULT_SOURCE}.",
-    )
-    parser.add_argument(
-        "-w", "--working-dir", type=Path, default=SUPPRESS,
-        help=(
-            "Working directory for snapshots and temporary synchronization data. "
-            f"Defaults: {DEFAULT_HOME_PATH}."
-        ),
-    )
-    parser.add_argument(
-        "-a", "--arch-list", choices=ARCH_LIST, nargs="*", default=SUPPRESS,
-        help=f"Target CPU architectures. Defaults: {DEFAULT_ARCH}.",
-    )
-    parser.add_argument(
-        "-I", "--include-files", nargs="*", default=SUPPRESS,
-        help=(
-            "File patterns to include during synchronization. "
-            f"Defaults: {DEFAULT_INCLUDE_FILES}."
-        ),
-    )
-    parser.add_argument(
-        "-E", "--exclude-files", nargs="*", default=SUPPRESS,
-        help=("File patterns to exclude from synchronization. "
-              f"Defaults: {DEFAULT_EXCLUDE_FILES}."),
-    )
-    parser.add_argument(
-        "-S", "--snapshot-limit", type=int, default=SUPPRESS,
-        help=(
-            "Maximum number of snapshots to keep. Must be >= 1. "
-            f"Defaults: {DEFAULT_SNAPSHOTS_LIMIT}."
-        ),
-    )
-    parser.add_argument(
-        "-R", "--rate-limit", default=SUPPRESS,
-        help=(
-            "limit socket I/O bandwidth. "
-            f"Defaults: {DEFAULT_RATE_LIMIT}."
-        ),
-    )
-    parser.add_argument(
-        "--conn-timeout", type=int, default=SUPPRESS,
-        help=(
-            "Connection timeout in seconds. "
-            f"Defaults: {DEFAULT_CONN_TIMEOUT}."
-        ),
-    )
-    parser.add_argument(
-        "--io-timeout", type=int, default=SUPPRESS,
-        help=(
-            "I/O timeout in seconds. "
-            f"Defaults: {DEFAULT_IO_TIMEOUT}."
-        ),
-    )
+
+    add_arg = partial(parser.add_argument, default=SUPPRESS)
+    add_flag = partial(add_arg, action="store_true")
+
+    add_arg("-c", "--config", type=Path,
+        help=f"Path to TOML configuration file. Defaults: {DEFAULT_CONF_PATH}.")
+
+    add_flag("-n", "--dry-run", help="Perform a trial run without making changes.")
+
+    add_flag("-v", "--verbose", help="Enable verbose mode with detailed output.")
+
+    add_flag("-d", "--debug", help=("Enable debug mode."))
+
+    add_arg("-b", "--branch-list", choices=BRANCH_LIST, nargs="*",
+        help="Explicitly defined repository branches.")
+
+    add_arg("-s", "--source-url",
+        help=f"Repository source URL. Defaults: {DEFAULT_SOURCE}.")
+
+    add_arg("-w", "--working-dir", type=Path, help=(
+        "Working directory for snapshots and temporary synchronization data. "
+        f"Defaults: {DEFAULT_HOME_PATH}."))
+
+    add_arg("-a", "--arch-list", choices=ARCH_LIST, nargs="*",
+        help=f"Target CPU architectures. Defaults: {DEFAULT_ARCH}.")
+
+    add_arg("-I", "--include-files", nargs="*", help=(
+        "File patterns to include during synchronization. "
+        f"Defaults: {DEFAULT_INCLUDE_FILES}."))
+
+    add_arg("-E", "--exclude-files", nargs="*", help=(
+        "File patterns to exclude from synchronization. "
+        f"Defaults: {DEFAULT_EXCLUDE_FILES}."))
+
+    add_arg("-S", "--snapshot-limit", type=int, help=(
+        "Maximum number of snapshots to keep. Must be >= 1. "
+        f"Defaults: {DEFAULT_SNAPSHOTS_LIMIT}."))
+
+    add_arg("-R", "--rate-limit",
+            help=f"limit socket I/O bandwidth. Defaults: {DEFAULT_RATE_LIMIT}.")
+
+    add_arg("--conn-timeout", type=int,
+        help=f"Connection timeout in seconds. Defaults: {DEFAULT_CONN_TIMEOUT}.")
+
+    add_arg("--io-timeout", type=int,
+        help=f"I/O timeout in seconds. Defaults: {DEFAULT_IO_TIMEOUT}.")
+
     cli_options = vars(parser.parse_args(args))
 
     snapshot_limit = cli_options.get("snapshot_limit")

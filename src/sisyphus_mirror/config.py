@@ -64,7 +64,11 @@ class ConfigHandler:
                 f"a TOML table (dictionary). Got: {file_dict}."
             )
             raise ConfigError(msg)
-        if not (config_options := file_dict.get("sisyphus-mirror", None)):
+
+        if "sisyphus-mirror" in file_dict and "sisyphus_mirror" not in file_dict:
+            file_dict["sisyphus_mirror"] = file_dict.pop("sisyphus-mirror", None)
+
+        if not (config_options := file_dict.get("sisyphus_mirror", None)):
             msg = f"Not found [sisyphus-mirror] section in {self.config_path}"
             raise ConfigError(msg)
         if not isinstance(config_options, dict):

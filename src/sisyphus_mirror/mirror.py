@@ -60,7 +60,7 @@ class BranchMirror:
     rate_limit: int | str = DEFAULT_RATE_LIMIT
     conn_timeout: int = DEFAULT_CONN_TIMEOUT
     io_timeout: int = DEFAULT_IO_TIMEOUT
-    logger: Logger = get_logger(__name__)  # noqa: RUF009
+    logger: Logger = get_logger(__name__)
     new_snapshot: Path | None = field(init=False)
 
     def __post_init__(self) -> None:
