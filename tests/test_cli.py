@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from sisyphus_mirror.cli import handle_cli_options
@@ -32,8 +34,16 @@ def test_cli_arch_list_one_valid(arch_list: ArchT) -> None:
 def test_cli_arch_list_all_valid() -> None:
     expected = {"arch_list": list(ARCH_LIST)}
 
-    assert handle_cli_options(["--a", *ARCH_LIST]) == expected
+    assert handle_cli_options(["-a", *ARCH_LIST]) == expected
     assert handle_cli_options(["--arch-list", *ARCH_LIST]) == expected
+
+
+def test_cli_linkdest_list_all_valid() -> None:
+    user_snapshots = ["src", "tests"]
+    expected = {"linkdest_list": [Path(e) for e in user_snapshots]}
+
+    assert handle_cli_options(["-L", *user_snapshots]) == expected
+    assert handle_cli_options(["--linkdest-list", *user_snapshots]) == expected
 
 
 @pytest.mark.parametrize("snapshot_limit", ["-1", "0"])
@@ -44,7 +54,7 @@ def test_cli_snapshot_limit_invalid(snapshot_limit: str) -> None:
         handle_cli_options(["--snapshot-limit", snapshot_limit])
 
 
-@pytest.mark.parametrize("rate_limit", ["-1", "1.5"])
+@pytest.mark.parametrize("rate_limit", ["-1", "1.5", "1.m", ""])
 def test_cli_rate_limit_invalid(rate_limit: str) -> None:
     with pytest.raises(CommandError):
         handle_cli_options(["-R", rate_limit])

@@ -49,6 +49,9 @@ Installation
   # Target CPU architectures.
   arch_list = ["noarch", "x86_64", "x86_64-i586"]
 
+  # Additional paths for finding and creating hard links to unchanged files.
+  linkdest_list = []
+
   # Additional file include patterns.
   include_files = ["list/**", ".timestamp"]
 
@@ -104,7 +107,6 @@ Systemd Integration
   Type=oneshot
   User=sisyphus-mirror
   Group=sisyphus-mirror
-  WorkingDirectory=/opt/sisyphus-mirror
   ExecStart=sisyphus-mirror
   ProtectHome=true
   ProtectSystem=true
@@ -140,6 +142,7 @@ Example for a previously unconfigured rsync installation:
   echo 'port = 873
   uid = 65534
   gid = 65534
+  # Using chroot is required
   use chroot = yes
   max connections = 30
 

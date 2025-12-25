@@ -52,6 +52,9 @@ def handle_cli_options(
     add_arg("-a", "--arch-list", choices=ARCH_LIST, nargs="*",
         help=f"Target CPU architectures. Defaults: {DEFAULT_ARCH}.")
 
+    add_arg("-L", "--linkdest-list", type=Path, nargs="*",
+        help="Paths to additional hard-link sources.")
+
     add_arg("-I", "--include-files", nargs="*", help=(
         "File patterns to include during synchronization. "
         f"Defaults: {DEFAULT_INCLUDE_FILES}."))
@@ -74,6 +77,15 @@ def handle_cli_options(
         help=f"I/O timeout in seconds. Defaults: {DEFAULT_IO_TIMEOUT}.")
 
     cli_options = vars(parser.parse_args(args))
+
+    linkdest_list: list[Path] = cli_options.get("linkdest_list", [])
+    for linkdest in linkdest_list:
+        if not linkdest.exists():
+            msg = (
+                f"CLI option -L / --linkdest-list: path `{linkdest}` does not exist or "
+                "permission denied."
+            )
+            raise CommandError(msg)
 
     snapshot_limit = cli_options.get("snapshot_limit")
     if isinstance(snapshot_limit, int) and snapshot_limit < 1:

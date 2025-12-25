@@ -27,9 +27,11 @@ def test_config_handler_load_options(config_handler: ConfigHandler) -> None:
 def test_config_handler_normalize_options(config_handler: ConfigHandler) -> None:
     unnormalized = {
         "working-dir": str(DEFAULT_HOME_PATH),
+        "linkdest_list": ["user-snapshot-1", "user-snapshot-2"],
     }
     normalized = {
         "working_dir": DEFAULT_HOME_PATH,
+        "linkdest_list": [Path("user-snapshot-1"), Path("user-snapshot-2")],
     }
     result = config_handler.normalize_options(unnormalized)
     assert result == normalized
@@ -81,12 +83,12 @@ def test_config_handler_validate_min_integer(config_handler: ConfigHandler) -> N
         )
 
 
-def test_config_handler_validate_path(config_handler: ConfigHandler) -> None:
-    assert config_handler.validate_path(
-        option_name="option_name", option_value=DEFAULT_CONF_PATH,
+def test_config_handler_validate_exist_path(config_handler: ConfigHandler) -> None:
+    assert config_handler.validate_exist_path(
+        option_name="option_name", option_value=Path("/"),
     ) is None
     with pytest.raises(ConfigError):
-        config_handler.validate_path(
+        config_handler.validate_exist_path(
             option_name="option_name", option_value=None,
         )
 

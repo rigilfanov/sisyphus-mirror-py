@@ -15,6 +15,7 @@ class CommonKW(TypedDict):
     working_dir: NotRequired[Path]
     source_url: NotRequired[str]
     arch_list: NotRequired[list[ArchT]]
+    linkdest_list: NotRequired[list[Path]]
 
     include_files: NotRequired[list[str]]
     exclude_files: NotRequired[list[str]]

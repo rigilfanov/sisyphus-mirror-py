@@ -17,8 +17,7 @@ def main(logger: Logger = get_logger(__name__)) -> None:
     config_handler = ConfigHandler(config_path)
     config_options = config_handler.run()
 
-    config_options.update(cli_options)
-
+    # instead of dict.update() for type checkers
     options: CLIArgsT | ConfigKW = {
         **config_options,
         **cli_options,

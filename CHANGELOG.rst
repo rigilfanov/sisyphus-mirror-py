@@ -3,6 +3,19 @@ Changelog
 Unreleased
 ==========
 
+[1.2.0] - 2025-12-25
+====================
+Added
+-----
+* New `-L` / `--linkdest-list` command-line option.
+* New `linkdest_list` configuration option.
+* Validate that the `working_dir` path exists.
+* Validate that all paths in `linkdest_list` exist.
+
+Changed
+-------
+* Improved validation of `rate_limit` values.
+
 [1.1.0] - 2025-12-06
 ====================
 Added

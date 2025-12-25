@@ -49,6 +49,9 @@ Sisyphus Mirror Py
   # Целевые архитектуры процессора.
   arch_list = ["noarch", "x86_64", "x86_64-i586"]
 
+  # Дополнительные пути для поиска и создания жёстких ссылок на неизменённые файлы.
+  linkdest_list = []
+
   # Дополнительные шаблоны включения файлов.
   include_files = ["list/**", ".timestamp"]
 
@@ -104,7 +107,6 @@ Sisyphus Mirror Py
   Type=oneshot
   User=sisyphus-mirror
   Group=sisyphus-mirror
-  WorkingDirectory=/opt/sisyphus-mirror
   ExecStart=sisyphus-mirror
   ProtectHome=true
   ProtectSystem=true
@@ -140,6 +142,7 @@ Sisyphus Mirror Py
   echo 'port = 873
   uid = 65534
   gid = 65534
+  # Использование chroot обязательно
   use chroot = yes
   max connections = 30
 

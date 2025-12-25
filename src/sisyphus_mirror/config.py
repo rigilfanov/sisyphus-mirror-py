@@ -29,9 +29,10 @@ class ConfigHandler:
             "branch_list": partial(
                 self.validate_literal_string_list, choices=BRANCH_LIST),
             "source_url": self.validate_rsync_url,
-            "working_dir": self.validate_path,
+            "working_dir": self.validate_exist_path,
             "arch_list": partial(
                 self.validate_literal_string_list, choices=ARCH_LIST),
+            "linkdest_list": self.validate_exist_path_list,
             "include_files": self.validate_string_list,
             "exclude_files": self.validate_string_list,
             "snapshot_limit": partial(
@@ -80,6 +81,8 @@ class ConfigHandler:
         options = {key.replace("-", "_"): value for key,value in options.items()}
         if working_dir := options.get("working_dir"):
             options["working_dir"] = Path(working_dir)
+        if linkdest_list := options.get("linkdest_list"):
+            options["linkdest_list"] = [Path(linkdest) for linkdest in linkdest_list]
         return options
 
     def validate_options(self, options: dict[str, Any]) -> ConfigKW:
@@ -99,6 +102,46 @@ class ConfigHandler:
                 "Got: {option_value}."
             )
             raise ConfigError(msg)
+
+    def validate_exist_path(self, option_name: str, option_value: Any) -> None:
+        if not isinstance(option_value, Path):
+            msg = (
+                f'{self.config_path}: option "{option_name}". '
+                "Type must be file path string. "
+                f"Got: {option_value}."
+            )
+            raise ConfigError(msg)
+        if not option_value.exists():
+            msg = (
+                f'{self.config_path}: option "{option_name}". '
+                f"Path does not exist or permission denied. "
+                f"Got: {option_value}."
+            )
+            raise ConfigError(msg)
+
+    def validate_exist_path_list(self, option_name: str, option_value: Any) -> None:
+        if not isinstance(option_value, list):
+            msg = (
+                f'{self.config_path}: option "{option_name}". '
+                "Type must be array of file path strings. "
+                f"Got: {option_value}."
+            )
+            raise ConfigError(msg)
+        for index, item in enumerate(option_value):
+            if not isinstance(item, Path):
+                msg = (
+                    f'{self.config_path}: option "{option_name}". '
+                    f"Item #{index} must be a file path string. "
+                    f"Got: {item}."
+                )
+                raise ConfigError(msg)
+            if not item.exists():
+                msg = (
+                    f'{self.config_path}: option "{option_name}". '
+                    f"Item #{index}: Path does not exist or permission denied. "
+                    f"Got: {item}."
+                )
+                raise ConfigError(msg)
 
     def validate_literal_string_list(
         self,
@@ -149,15 +192,6 @@ class ConfigHandler:
             msg = (
                 f'{self.config_path}: option "{option_name}". '
                 f"Value must be >= {min_value}. "
-                f"Got: {option_value}."
-            )
-            raise ConfigError(msg)
-
-    def validate_path(self, option_name: str, option_value: Any) -> None:
-        if not isinstance(option_value, Path):
-            msg = (
-                f'{self.config_path}: option "{option_name}". '
-                "Type must be file path string. "
                 f"Got: {option_value}."
             )
             raise ConfigError(msg)

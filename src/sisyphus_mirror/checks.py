@@ -1,8 +1,7 @@
 import re
 from typing import Any
 
-RSYNC_RATE_LIMIT_RE = re.compile(r"^\d+(?:(?:\.\d+)?m)?$")
-
+RSYNC_RATE_LIMIT_RE = re.compile(r"^(?:\d+|\d+m|\d+\.\d+m)$")
 
 def is_rsync_rate_limit(value: Any) -> bool:
     return (

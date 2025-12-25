@@ -3,6 +3,7 @@ import subprocess
 from dataclasses import dataclass, field
 from datetime import datetime
 from logging import Logger, getLogger
+from os import chdir
 from pathlib import Path
 from typing import Unpack
 
@@ -23,6 +24,9 @@ from sisyphus_mirror.typedefs import ArchT, BranchT, RepoMirrorKW
 
 def repo_mirroring(**kwargs: Unpack[RepoMirrorKW]) -> None:
     logger = kwargs.get("logger", getLogger(__name__))
+
+    if working_dir := kwargs.get("working_dir"):
+        chdir(working_dir)
 
     if not (branch_list := kwargs.get("branch_list")):
         msg = (
@@ -54,6 +58,7 @@ class BranchMirror:
     source_url: str = DEFAULT_SOURCE
     working_dir: Path = DEFAULT_HOME_PATH
     arch_list: list[ArchT] = field(default_factory=lambda: DEFAULT_ARCH)
+    linkdest_list: list[Path] = field(default_factory=list)
     include_files: list[str] = field(default_factory=lambda: DEFAULT_INCLUDE_FILES)
     exclude_files: list[str] = field(default_factory=lambda: DEFAULT_EXCLUDE_FILES)
     snapshot_limit: int = DEFAULT_SNAPSHOTS_LIMIT
@@ -69,6 +74,7 @@ class BranchMirror:
         self.partial_dir = self.working_dir/".partial"/self.branch
         self.snapshots_dir = self.working_dir/".snapshots"
         self.dest_dir = self.snapshots_dir/f"__{self.branch}_UNCOMPLETE__"
+        self.new_snapshot = None
 
     def run(self) -> None:
         self.logger.info(f"Branch {self.branch} mirror run")
@@ -129,6 +135,8 @@ class BranchMirror:
         if current_snapshots := self.snapshot_map.get(self.branch):
             paths.append(current_snapshots[-1])
 
+        paths.extend(self.linkdest_list)
+
         for other_branch in self.branch_list:
             if other_branch != self.branch:
                 if other_snapshots := self.snapshot_map.get(other_branch):
@@ -188,7 +196,6 @@ class BranchMirror:
             result = subprocess.run(rsync_cmd, check=False, text=True)
             if result.returncode == 0:
                 break
-            self.logger.warning(f"rsync: {result.stderr}")
         else:
             msg = "Synchronization failed"
             raise RuntimeError(msg)

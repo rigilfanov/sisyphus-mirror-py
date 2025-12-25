@@ -1,4 +1,3 @@
-# sisyphus_mirror/logging_.py
 import logging
 from logging import DEBUG, INFO, WARNING, Logger, getLogger
 
